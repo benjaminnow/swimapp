@@ -1,7 +1,7 @@
 from __future__ import print_function
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
 #import pymysql
-from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, validators
+#from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 import random
@@ -13,8 +13,8 @@ from oauth2client import client
 import time
 import chartkick
 from db import *
+from forms import *
 import os
-
 
 app = Flask(__name__)
 app.jinja_env.add_extension("chartkick.ext.charts")
@@ -157,17 +157,6 @@ def username_already_registered(name):
         return False
 
 
-class RegisterForm(Form):
-    name = StringField('Name', [validators.Length(min = 1, max = 50)])
-    username = StringField('Username', [validators.Length(min = 3, max = 25)])
-    email = StringField('Email', [validators.Length(min = 6, max = 50)])
-    password = PasswordField('Password', [
-        validators.DataRequired(),
-        validators.EqualTo('confirm', message = 'Passwords do not match')
-    ])
-    confirm = PasswordField('Confirm password')
-    admin_code = PasswordField('Admin password - If you are an admin, enter your code here. If not, leave it blank.')
-
 @app.route('/register', methods = ['GET', 'POST'])
 def register():
     isAdmin = False
@@ -284,9 +273,7 @@ def dashboard():
         return render_template('dashboard.html', msg = msg)
     conn.close()
 
-class SwimmerForm(Form):
-    name = StringField('Name', [validators.Length(min = 1)])
-    group = SelectField('Group', choices=[('marlin_teal', 'Marlin Teal'), ('marlin_black', 'Marlin Black'), ('wave_teal', 'Wave Teal'), ('wave_black', 'Wave Black'), ('wave_gold', 'Wave Gold'), ('senior_prep', 'Senior Prep'), ('senior', 'Senior')])
+
 
 @app.route('/add_swimmer', methods = ['GET', 'POST'])
 @is_logged_in_admin
@@ -400,11 +387,7 @@ def remove_here(id):
     flash('Swimmer removed from here list', 'success')
     return redirect(url_for('here'))
 
-class JobForm(Form):
-    name = StringField('Name', [validators.Length(min = 1, max = 50)])
-    minimum = IntegerField('Minimum people required')
-    difficulty = SelectField('Difficulty level', choices = [('1', '1'), ('2','2'), ('3','3')])
-    dump = BooleanField('Dump rest in this job')
+
 
 @app.route('/add_job', methods = ['GET', 'POST'])
 @is_logged_in_admin
@@ -644,9 +627,7 @@ def attendance():
     attendance_history = cur.fetchall()
     return render_template('attendance.html', attendance_totals = attendance_totals, attendance_history = attendance_history)
 
-class AttendanceForm(Form):
-    amount = DecimalField('Amount', [validators.DataRequired()], places = 2)
-    group = SelectField('Group', choices=[('marlin_teal', 'Marlin Teal'), ('marlin_black', 'Marlin Black'), ('wave_teal', 'Wave Teal'), ('wave_black', 'Wave Black'), ('wave_gold', 'Wave Gold'), ('senior_prep', 'Senior Prep'), ('senior', 'Senior')])
+
 
 @app.route('/add_attendance', methods = ['GET', 'POST'])
 @is_logged_in_admin
