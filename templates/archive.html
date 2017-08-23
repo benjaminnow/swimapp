@@ -1,0 +1,98 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<script>
+  $(document).ready(function(){
+    var clicked = false;
+    $("#enableReset").click(function(){
+        if(clicked == false) {
+          clicked = true;
+          $(".resetbtn").attr('class', 'btn btn-danger resetbtn');
+        } else {
+          clicked = false;
+          $(".resetbtn").attr('class', 'btn btn-danger disabled resetbtn');
+        }
+    });
+  });
+</script>
+<html>
+  </body>
+  <h1>Archive and Reset</h1>
+  <a href="/login_to_google" class="btn btn-default">Login to Google</a>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <h2>Archive<small> - This will archive data into Google Sheets</small></h2>
+      <hr>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Send weekly attendance to Sheets</h3>
+        </div>
+        <div class="panel-body">
+          <div class="dropdown">
+            <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown">Send Group
+            <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li><a href="/weekly_attendance/all">All Swimmers</a></li>
+              <li class="divider"></li>
+              <li><a href="/weekly_attendance/marlin_teal">Marlin Teal</a></li>
+              <li><a href="/weekly_attendance/marlin_black">Marlin Black</a></li>
+              <li><a href="/weekly_attendance/wave_teal">Wave Teal</a></li>
+              <li><a href="/weekly_attendance/wave_black">Wave Black</a></li>
+              <li><a href="/weekly_attendance/wave_gold">Wave Gold</a></li>
+              <li><a href="/weekly_attendance/senior_prep">Senior Prep</a></li>
+              <li><a href="/weekly_attendance/senior">Senior</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Archive attendance data at end of season</h3>
+        </div>
+        <div class="panel-body">
+          <a href="/end_season_attendance" class="btn btn-success">Send</a>
+        </div>
+      </div>
+      <h2>Reset<small> - This will delete data forever</small></h2>
+      <div class="alert alert-danger" role="alert">
+        <b>Warning!!! These buttons will delete important information! Proceed with caution please.</b>
+      </div>
+      <button id="enableReset" class="btn btn-danger">Enable/Disable Reset Buttons</button>
+      <hr>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Reset Job Total</h3>
+        </div>
+        <div class="panel-body">
+          <a href="/archive/job_total" class="btn btn-danger disabled resetbtn">Reset</a>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Reset Individual Attendance Total</h3>
+        </div>
+        <div class="panel-body">
+          <a href="/archive/attendance_total" class="btn btn-danger disabled resetbtn">Reset</a>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Reset Group Attendance Totals</h3>
+        </div>
+        <div class="panel-body">
+          <a href="/archive/group_attendance" class="btn btn-danger disabled resetbtn">Reset</a>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Reset Weekly Attendance History For Graphs</h3>
+        </div>
+        <div class="panel-body">
+          <a href="/archive/weekly_attendance_history" id="resetbtn" class="btn btn-danger disabled resetbtn">Reset</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  </body>
+</html>
+{% endblock %}

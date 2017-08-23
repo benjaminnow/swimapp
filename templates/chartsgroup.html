@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<html>
+  <body>
+    <div class="container">
+      <h2>Charts</h2>
+      <div class="dropdown pull-right">
+        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select Group
+        <span class="caret"></span></button>
+        <ul class="dropdown-menu">
+          <li><a href="/charts/top/all">All Swimmers</a></li>
+          <li class="divider"></li>
+          <li><a href="/charts/top/marlin_teal">Marlin Teal</a></li>
+          <li><a href="/charts/top/marlin_black">Marlin Black</a></li>
+          <li><a href="/charts/top/wave_teal">Wave Teal</a></li>
+          <li><a href="/charts/top/wave_black">Wave Black</a></li>
+          <li><a href="/charts/top/wave_gold">Wave Gold</a></li>
+          <li><a href="/charts/top/senior_prep">Senior Prep</a></li>
+          <li><a href="/charts/top/senior">Senior</a></li>
+        </ul>
+      </div>
+      {% bar_chart data %}
+
+  </body>
+</html>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <div class="jumbotron text-center">
+    <h1>swimapp</h1>
+    <p class="lead">Scarlet Aquatics</p>
+    <h2><a href="https://docs.google.com/document/d/1Y6Bg9_paw6Z3v6o2AtELtieiFf9YQeFXQrU91Tpp9bs/edit?usp=sharing">HowTo: Take attendance</a></h2>
+    {% if session.logged_in == NULL %}
+      <a href="/login" class="btn btn-success btn-lg">Login</a>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<style>
+  input[type=submit] {
+    padding: 10px;
+  }
+</style>
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Dashboard<small> Welcome {{ session.username }}</small></h1>
+  <div class="dropdown pull-right">
+    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select Group
+    <span class="caret"></span></button>
+    <ul class="dropdown-menu">
+      <li><a href="/dashboard">All Swimmers</a></li>
+      <li class="divider"></li>
+      <li><a href="/dashboard/training_group/marlin_teal">Marlin Teal</a></li>
+      <li><a href="/dashboard/training_group/marlin_black">Marlin Black</a></li>
+      <li><a href="/dashboard/training_group/wave_teal">Wave Teal</a></li>
+      <li><a href="/dashboard/training_group/wave_black">Wave Black</a></li>
+      <li><a href="/dashboard/training_group/wave_gold">Wave Gold</a></li>
+      <li><a href="/dashboard/training_group/senior_prep">Senior Prep</a></li>
+      <li><a href="/dashboard/training_group/senior">Senior</a></li>
+    </ul>
+  </div>
+  <a class="btn btn-success" href="/add_swimmer">Add swimmer</a>
+  <form action="{{ url_for('reset_attending', training_g = group) }}" method="post">
+    <input type="submit" value="Reset group" class="btn btn-danger">
+  </form>
+  {% if group == 'marlin_teal' %}
+    <h3>Marlin Teal</h3>
+  {% elif group == 'marlin_black' %}
+    <h3>Marlin Black</h3>
+  {% elif group == 'wave_teal' %}
+    <h3>Wave Teal</h3>
+  {% elif group == 'wave_black' %}
+    <h3>Wave Black</h3>
+  {% elif group == 'wave_gold' %}
+    <h3>Wave Gold</h3>
+  {% elif group == 'senior_prep' %}
+    <h3>Senior Prep</h3>
+  {% else %}
+    <h3>Senior</h3>
+  {% endif %}
+  <hr>
+  <div class="container">
+      <table id="table"
+             data-toggle="table"
+             data-height=""
+             data-url=""
+             data-sort-name="name"
+             data-sort-order="asc"
+             data-pagination="true"
+             data-page-list="[5, 10, 20, 50, 100, 200, All]"
+             data-search="true">
+          <thead>
+          <tr>
+              <th data-field="name" data-sortable="true">Name</th>
+              <th data-field="attending" data-sortable="false">Attending</th>
+              <th data-field="total" data-sortable="true">Total</th>
+              <th data-field="job_total" data-sortable="true">Job Total</th>
+              <th data-field="take_credit" data-sortable="false">Take Credit</th>
+              <th data-field="delete" data-sortable="false"></th>
+          </tr>
+          </thead>
+          <tbody>
+            {% for swimmer in swimmers %}
+              {% if swimmer.attending == 1 %}
+                <tr id="tr-id" class="tr-class success">
+              {% else %}
+                <tr id="tr-id" class="tr-class">
+              {% endif %}
+                <td id="td-id" class="td-class">{{ swimmer.name }}</td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Amount
+                    <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="0.5">
+                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
+                        <input type="submit" value="0.5" class="btn-block">
+                      </form>
+                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="0.66">
+                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
+                        <input type="submit" value="0.66" class="btn-block">
+                      </form>
+                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="0.8">
+                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
+                        <input type="submit" value="0.8" class="btn-block">
+                      </form>
+                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="1">
+                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
+                        <input type="submit" value="1" class="btn-block">
+                      </form>
+                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="1.2">
+                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
+                        <input type="submit" value="1.2" class="btn-block">
+                      </form>
+                    </ul>
+                  </div>
+                </td>
+                <td>{{ swimmer.total }}</td>
+                <td>{{ swimmer.job_total }}</td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Amount
+                    <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      <form action="{{ url_for('take_credit', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="1">
+                        <input type="submit" value="1" class="btn-block">
+                      </form>
+                      <form action="{{ url_for('take_credit', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="2">
+                        <input type="submit" value="2" class="btn-block">
+                      </form>
+                      <form action="{{ url_for('take_credit', id=swimmer.id) }}" method="post" >
+                        <input type="hidden" name="id" value="{{ swimmer.id }}">
+                        <input type="hidden" name="amount" value="3">
+                        <input type="submit" value="3" class="btn-block">
+                      </form>
+                    </ul>
+                  </div>
+                </td>
+                <td>
+                  <form action="{{ url_for('delete_swimmer', id=swimmer.id) }}" method = "post">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="btn btn-danger">
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+      </table>
+  </div>
+</body>
+</html>
+{% endblock %}

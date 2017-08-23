@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>{{ swimmer.name }}</h1>
+  <hr>
+  <div class='pull-right'><h2>Attendance: {{ percent }}%<h2></div>
+  <h2>Attendance History</h2>
+  <div class="container">
+    <table id="table"
+           data-toggle="table"
+           data-height=""
+           data-url=""
+           data-sort-name="date"
+           data-sort-order="desc"
+           data-pagination="true"
+           data-page-list="[5, 10, 20, 50, 100, 200, All]"
+           data-search="false">
+        <thead>
+        <tr>
+            <th data-field="date" data-sortable="true">Date</th>
+            <th data-field="amount" data-sortable="true">Credit</th>
+        </tr>
+        </thead>
+        <tbody>
+          {% for attendance in attendance_d %}
+            <tr id="tr-id" class="tr-class">
+              <td id="td-id" class="td-class">{{ attendance.date }}</td>
+              <td id="td-id" class="td-class">{{ attendance.amount }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+  </div>
+  <h2>Jobs History</h2>
+  <div class="container">
+    <table id="table"
+           data-toggle="table"
+           data-height=""
+           data-url=""
+           data-sort-name="date"
+           data-sort-order="desc"
+           data-pagination="true"
+           data-page-list="[5, 10, 20, 50, 100, 200, All]"
+           data-search="false">
+        <thead>
+        <tr>
+            <th data-field="name" data-sortable="true">Name</th>
+            <th data-field="date" data-sortable="true">Date</th>
+            <th data-field="amount" data-sortable="true">Credit</th>
+        </tr>
+        </thead>
+        <tbody>
+          {% for job in jobs %}
+            <tr id="tr-id" class="tr-class">
+              <td id="td-id" class="td-class">{{ job.job_name }}</td>
+              <td id="td-id" class="td-class">{{ job.date }}</td>
+              <td id="td-id" class="td-class">{{ job.amount }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+    <h2>Attendance Graph</h2>
+      {% line_chart data %}
+  </div>
+{% endblock %}

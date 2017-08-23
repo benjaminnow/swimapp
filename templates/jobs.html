@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Jobs List</h1>
+  <a class="btn btn-success" href="/add_job">Add job</a>
+  <table class="table table-striped">
+    <tr>
+      <th>Name<th>
+      <th>Minimum<th>
+      <th>Difficulty<th>
+      <th><th>
+    </tr>
+    {% for job in jobs %}
+      <tr>
+        <td>{{ job.name }}<td>
+        <td>{{ job.minimum }}<td>
+        <td>{{ job.difficulty }}<td>
+        <td>
+          <form action="{{ url_for('remove_job', id=job.id) }}" method = "post">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Remove" class="btn btn-danger">
+          </form>
+        <td>
+      </tr>
+    {% endfor %}
+  </table>
+    <a class="btn btn-success" href="/choose_jobs">Choose Jobs!</a>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Add Job</h1>
+  {% from "includes/_formhelpers.html" import render_field %}
+  <form method="POST" action="">
+    <div class="form-group">
+      {{ render_field(form.name, class_="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ render_field(form.minimum, class_="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ render_field(form.difficulty, class_="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ render_field(form.dump, class_="form-control") }}
+    </div>
+    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+  </form>
+{% endblock %}

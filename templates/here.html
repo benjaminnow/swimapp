@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Attending Swimmers List</h1>
+  <a class="btn btn-success pull-right" href="/jobs">Choose Jobs</a>
+  <table class="table table-striped">
+    <tr>
+      <th>ID<th>
+      <th>Name<th>
+      <th><th>
+    </tr>
+    {% for swimmer in swimmers %}
+    <tr>
+      <td>{{ swimmer.id }}<td>
+      <td>{{ swimmer.name }}<td>
+      <td>
+        <form action="{{ url_for('remove_here', id=swimmer.id) }}" method = "post">
+          <input type="hidden" name="_method" value="DELETE">
+          <input type="submit" value="Remove" class="btn btn-danger">
+        </form>
+      <td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

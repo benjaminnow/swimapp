@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Chosen Jobs List</h1>
+  {% for job in jobs %}
+    <h2>{{ job.name }}</h2>
+    <table class="table table-striped">
+      <tr>
+        <th>Name<th>
+        <th>Job Total<th>
+      </tr>
+      {% for swimmer in chosenSwimmers %}
+        {% if swimmer.job_name == job.name %}
+          <tr>
+            {% for swimmerw in swimmers %}
+              {% if swimmerw.id == swimmer.id %}
+                <td>{{ swimmerw.name }}<td>
+              {% endif %}
+            {% endfor %}
+            {% for swimmerp in swimmers %}
+              {% if swimmerp.id == swimmer.id %}
+                <td>{{ swimmerp.job_total }}<td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </table>
+  {% endfor %}
+  </table>
+  <a class="btn btn-danger" href="/delete_chosen">Done for today</a>
+{% endblock %}
