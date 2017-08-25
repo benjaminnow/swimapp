@@ -1,4 +1,14 @@
 from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, validators
+from db import *
+
+def get_groups():
+    conn, cur = connection()
+    cur.execute('SELECT training_group FROM set_attendance')
+    groups = cur.fetchall()
+    choice_list = []
+    for i in range(len(groups)):
+        choice_list.append((groups[i]['training_group'], groups[i]['training_group']))
+    return choice_list
 
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min = 1, max = 50)])
@@ -14,7 +24,7 @@ class RegisterForm(Form):
 
 class SwimmerForm(Form):
     name = StringField('Name', [validators.Length(min = 1)])
-    group = SelectField('Group', choices=[('marlin_teal', 'Marlin Teal'), ('marlin_black', 'Marlin Black'), ('wave_teal', 'Wave Teal'), ('wave_black', 'Wave Black'), ('wave_gold', 'Wave Gold'), ('senior_prep', 'Senior Prep'), ('senior', 'Senior')])
+    group = SelectField('Group', choices = get_groups())
 
 class JobForm(Form):
     name = StringField('Name', [validators.Length(min = 1, max = 50)])
@@ -24,4 +34,7 @@ class JobForm(Form):
 
 class AttendanceForm(Form):
     amount = DecimalField('Amount', [validators.DataRequired()], places = 2)
-    group = SelectField('Group', choices=[('marlin_teal', 'Marlin Teal'), ('marlin_black', 'Marlin Black'), ('wave_teal', 'Wave Teal'), ('wave_black', 'Wave Black'), ('wave_gold', 'Wave Gold'), ('senior_prep', 'Senior Prep'), ('senior', 'Senior')])
+    group = SelectField('Group', choices = get_groups())
+
+class GroupForm(Form):
+    name = StringField('Name', [validators.Length(min = 1, max = 50)])

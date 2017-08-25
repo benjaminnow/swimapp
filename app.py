@@ -656,6 +656,19 @@ def attendance():
     return render_template('attendance.html', attendance_totals = attendance_totals, attendance_history = attendance_history)
 
 
+@app.route('/add_group', methods = ['GET', 'POST'])
+@is_logged_in_super_admin
+def add_group():
+    form = GroupForm(request.form)
+    if request.method == 'POST' and form.validate:
+        conn, cur = connection()
+        name = form.name.data
+        cur.execute('INSERT INTO set_attendance(training_group, total) VALUES(%s, 0)', [name])
+        conn.commit()
+        conn.close()
+        return redirect(url_for('attendance'))
+    return render_template('add_group.html', form = form)
+
 
 @app.route('/add_attendance', methods = ['GET', 'POST'])
 @is_logged_in_admin
@@ -972,10 +985,10 @@ def get_access_codes():
     data_list.insert(0, FIELDS)
     data = {'values': [row for row in data_list]}
     return data
-    
 
-@is_logged_in_super_admin
+
 @app.route('/print_access_codes')
+@is_logged_in_super_admin
 def print_access_codes():
     # connects to google if not connected already
     if 'credentials' not in session:
