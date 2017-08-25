@@ -5,6 +5,7 @@ from flask import Flask, render_template, flash, redirect, url_for, session, log
 from passlib.hash import sha256_crypt
 from functools import wraps
 import random
+import string
 from operator import itemgetter
 import json
 import httplib2
@@ -156,6 +157,21 @@ def username_already_registered(name):
     else:
         return False
 
+def access_code_used(code):
+    conn, cur = connection()
+    result = cur.execute('SELECT id FROM swimmers WHERE code = %s', [code])
+    if result > 0:
+        ids = cur.fetchall()
+        swimmer_id = ids[0]['id']
+        result2 = cur.execute('SELECT * FROM users WHERE linked_swimmer = %s', [swimmer_id])
+        conn.close()
+        if result2 > 0:
+            return 1
+        else:
+            return 0
+    else:
+        return 2
+
 
 @app.route('/register', methods = ['GET', 'POST'])
 def register():
@@ -215,13 +231,24 @@ def register():
         name = form.name.data
         email = form.email.data
         username = form.username.data
+        access_code = form.access_code.data
         if username_already_registered(username):
             error = 'username is already taken'
             return render_template('register.html', form = form, error = error)
+        elif access_code_used(access_code) == 1:
+            error = 'access code already used'
+            return render_template('register.html', form = form, error = error)
+        elif access_code_used(access_code) == 2:
+            error = 'access code not valid'
+            return render_template('register.html', form = form, error = error)
+
         password = sha256_crypt.encrypt(str(form.password.data))
 
         conn, cur = connection()
-        cur.execute("INSERT INTO users(name, email, username, password, admin) VALUES(%s, %s, %s, %s, 0)", (name, email, username, password))
+        cur.execute('SELECT id FROM swimmers WHERE code = %s', [access_code])
+        ids = cur.fetchall()
+        swimmer_id = ids[0]['id']
+        cur.execute("INSERT INTO users(name, email, username, password, linked_swimmer, admin) VALUES(%s, %s, %s, %s, %s, 0)", (name, email, username, password, swimmer_id))
         conn.commit()
         conn.close()
 
@@ -273,7 +300,8 @@ def dashboard():
         return render_template('dashboard.html', msg = msg)
     conn.close()
 
-
+def id_generator(size = 9, chars = string.ascii_uppercase + string.digits):
+    return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(size))
 
 @app.route('/add_swimmer', methods = ['GET', 'POST'])
 @is_logged_in_admin
@@ -282,8 +310,9 @@ def add_swimmer():
     if request.method == 'POST' and form.validate():
         name = form.name.data
         group = form.group.data
+        code_string = id_generator()
         conn, cur = connection()
-        cur.execute("INSERT INTO swimmers(name, total, training_group) VALUES(%s, 0, %s)", (name, group))
+        cur.execute("INSERT INTO swimmers(name, total, training_group, code) VALUES(%s, 0, %s, %s)", (name, group, code_string))
         conn.commit()
         conn.close()
         flash('Swimmer created', 'success')
@@ -332,7 +361,6 @@ def attending(id):
 def logout():
     session.clear()
     flash('You are now logged out', 'success')
-    flash(session['credentials'])
     return redirect(url_for('index'))
 
 
@@ -730,6 +758,26 @@ def archive(id):
     else:
         return redirect(url_for('dashboard'))
 
+def export_to_sheets(name, data):
+    if 'credentials' not in session:
+        return redirect(url_for('oauth2callback'))
+    credentials = client.OAuth2Credentials.from_json(session['credentials'])
+    if credentials.access_token_expired:
+        return redirect(url_for('oauth2callback'))
+
+    http_auth = credentials.authorize(httplib2.Http())
+    SHEETS = discovery.build('sheets', 'v4', http_auth)
+    head = {'properties': {'title': str(name)}}
+    res = SHEETS.spreadsheets().create(body=head).execute()
+    SHEET_ID = res['spreadsheetId']
+    file_id = str(SHEET_ID)
+    print(SHEET_ID)
+    print('Created "%s"' % res['properties']['title'])
+    SHEETS.spreadsheets().values().update(spreadsheetId=SHEET_ID,
+        range='A1', body=data, valueInputOption='RAW').execute()
+    #print('Wrote data to Sheet:')
+    rows = SHEETS.spreadsheets().values().get(spreadsheetId=SHEET_ID,
+        range='Sheet1').execute().get('values', [])
 
 @app.route('/weekly_attendance/<string:training_group>')
 @is_logged_in_super_admin
@@ -741,23 +789,7 @@ def weekly_attendance(training_group):
         return redirect(url_for('oauth2callback'))
 
     conn, cur = connection()
-    # creates the google sheet
-    http_auth = credentials.authorize(httplib2.Http())
-    SHEETS = discovery.build('sheets', 'v4', http_auth)
-    data = {'properties': {'title': 'Attendance [%s] [%s]' % (training_group, time.ctime())}}
-    res = SHEETS.spreadsheets().create(body=data).execute()
-    SHEET_ID = res['spreadsheetId']
-    file_id = str(SHEET_ID)
-    print(SHEET_ID)
-    print('Created "%s"' % res['properties']['title'])
-    # gets data from the weekly attendance function
-    data = get_weekly_attendance(training_group)
-    # puts data into spreadsheet
-    SHEETS.spreadsheets().values().update(spreadsheetId=SHEET_ID,
-        range='A1', body=data, valueInputOption='RAW').execute()
-    #print('Wrote data to Sheet:')
-    rows = SHEETS.spreadsheets().values().get(spreadsheetId=SHEET_ID,
-        range='Sheet1').execute().get('values', [])
+    export_to_sheets('Attendance [%s] [%s]' % (training_group, time.ctime()), get_weekly_attendance(training_group))
     cur.execute('DELETE FROM weekly_attendance')
     conn.commit()
     conn.close()
@@ -840,20 +872,7 @@ def end_season_attendance():
         return redirect(url_for('oauth2callback'))
 
     conn, cur = connection()
-    http_auth = credentials.authorize(httplib2.Http())
-    SHEETS = discovery.build('sheets', 'v4', http_auth)
-    data = {'properties': {'title': 'End of season attendance [%s]' % time.ctime()}}
-    res = SHEETS.spreadsheets().create(body=data).execute()
-    SHEET_ID = res['spreadsheetId']
-    file_id = str(SHEET_ID)
-    print(SHEET_ID)
-    print('Created "%s"' % res['properties']['title'])
-    data = get_end_attendance()
-    SHEETS.spreadsheets().values().update(spreadsheetId=SHEET_ID,
-        range='A1', body=data, valueInputOption='RAW').execute()
-    #print('Wrote data to Sheet:')
-    rows = SHEETS.spreadsheets().values().get(spreadsheetId=SHEET_ID,
-        range='Sheet1').execute().get('values', [])
+    export_to_sheets('End of season attendance [%s]' % time.ctime(), get_end_attendance())
     cur.execute('DELETE FROM season_attendance')
     conn.commit()
     conn.close()
@@ -941,39 +960,33 @@ def get_end_attendance():
     conn.close()
     return data
 
-# @app.route('/charts/top/all')
-# @is_logged_in
-# def charts():
-#     conn, cur = connection()
-#     cur.execute('SELECT name, percent FROM swimmers ORDER BY percent DESC')
-#     swimmers = cur.fetchall()
-#
-#     dataList = []
-#     for i in range(len(swimmers)):
-#         swimmerPercent = swimmers[i]['percent']
-#         swimmerName = swimmers[i]['name']
-#
-#         dataList.append([str(swimmerName), swimmerPercent])
-#
-#     conn.close()
-#     return render_template('charts.html', data = dataList)
-#
-# @app.route('/charts/top/<string:training_group>')
-# @is_logged_in
-# def chartsgroup(training_group):
-#     conn, cur = connection()
-#     cur.execute('SELECT name, percent FROM swimmers WHERE training_group = %s ORDER BY percent DESC', [training_group])
-#     swimmers = cur.fetchall()
-#
-#     dataList = []
-#     for i in range(len(swimmers)):
-#         swimmerPercent = swimmers[i]['percent']
-#         swimmerName = swimmers[i]['name']
-#
-#         dataList.append([str(swimmerName), swimmerPercent])
-#
-#     conn.close()
-#     return render_template('chartsgroup.html', data = dataList)
+
+def get_access_codes():
+    conn, cur = connection()
+    cur.execute('SELECT name, code FROM swimmers ORDER BY name ASC')
+    swimmer_codes = cur.fetchall()
+    FIELDS = ('Name', 'Access Code')
+    data_list = []
+    for i in range(len(swimmer_codes)):
+        data_list.append([swimmer_codes[i]['name'], swimmer_codes[i]['code']])
+    data_list.insert(0, FIELDS)
+    data = {'values': [row for row in data_list]}
+    return data
+    
+
+@is_logged_in_super_admin
+@app.route('/print_access_codes')
+def print_access_codes():
+    # connects to google if not connected already
+    if 'credentials' not in session:
+        return redirect(url_for('oauth2callback'))
+    credentials = client.OAuth2Credentials.from_json(session['credentials'])
+    if credentials.access_token_expired:
+        return redirect(url_for('oauth2callback'))
+
+    export_to_sheets('Swimmer Access Codes', get_access_codes())
+    return redirect(url_for('archive_page'))
+
 
 # comment out this when on local machine
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ class RegisterForm(Form):
         validators.EqualTo('confirm', message = 'Passwords do not match')
     ])
     confirm = PasswordField('Confirm password')
+    access_code = PasswordField('Access Code for swimmers - leave blank if you are a coach')
     admin_code = PasswordField('Admin password - If you are an admin, enter your code here. If not, leave it blank.')
 
 class SwimmerForm(Form):
