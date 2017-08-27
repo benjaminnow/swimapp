@@ -77,7 +77,19 @@ def is_logged_in_super_admin(f):
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    if 'logged_in' in session:
+        admin_check = isSuperAdmin()
+    else:
+        admin_check = 0
+    conn, cur = connection()
+    result = cur.execute('SELECT * FROM quote')
+    if result > 0:
+        quote = cur.fetchall()
+        body = quote[0]['quote_text']
+        author = quote[0]['author']
+        return render_template('home.html', admin_check = admin_check, body = body, author = author)
+    else:
+        return render_template('home.html', admin_check = admin_check)
 
 @app.route('/swimmers')
 @is_logged_in
@@ -561,14 +573,14 @@ def choose_jobs():
     conn, cur = connection()
     cur.execute('SELECT * FROM jobs')
     jobs = cur.fetchall()
-    jobTuple = []
+    jobList = []
     for i in range(len(jobs)):
-        jobTuple.append([jobs[i]['id'], jobs[i]['minimum'], jobs[i]['difficulty']])
-    jobTuple.sort(key=itemgetter(2))
+        jobList.append([jobs[i]['id'], jobs[i]['minimum'], jobs[i]['difficulty']])
+    jobList.sort(key=itemgetter(2))
 
     start = 0
-    for k in range(len(jobTuple)):
-        jobId = jobTuple[k][0]
+    for k in range(len(jobList)):
+        jobId = jobList[k][0]
         cur.execute('SELECT name, difficulty, minimum FROM jobs WHERE id = %s', [jobId])
         job = cur.fetchall()
         jobName = job[0]['name']
@@ -1000,6 +1012,23 @@ def print_access_codes():
     export_to_sheets('Swimmer Access Codes', get_access_codes())
     return redirect(url_for('archive_page'))
 
+@app.route('/quote_of_the_day', methods = ['GET', 'POST'])
+@is_logged_in_super_admin
+def quote_of_the_day():
+    form = QuoteForm(request.form)
+    if request.method == 'POST' and form.validate():
+        quote = form.body.data
+        author = form.author.data
+        conn, cur = connection()
+        result = cur.execute('SELECT * FROM quote')
+        if result > 0:
+            cur.execute('DELETE FROM quote')
+            conn.commit()
+        cur.execute('INSERT INTO quote(quote_text, author) VALUES(%s, %s)', (quote, author))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('index'))
+    return render_template('add_quote.html', form = form)
 
 # comment out this when on local machine
 if __name__ == '__main__':

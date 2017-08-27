@@ -1,4 +1,4 @@
-from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, validators
+from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, TextField, validators
 from db import *
 
 def get_groups():
@@ -38,3 +38,7 @@ class AttendanceForm(Form):
 
 class GroupForm(Form):
     name = StringField('Name', [validators.Length(min = 1, max = 50)])
+
+class QuoteForm(Form):
+    body = TextField('Quote', [validators.Length(min = 1)])
+    author = StringField('Author', [validators.Length(min = 1)])

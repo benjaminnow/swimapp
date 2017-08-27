@@ -1,10 +1,17 @@
 {% extends 'layout.html' %}
 
 {% block body %}
+  {% if admin_check == 1 %}
+    <a class="btn btn-success" href="/quote_of_the_day">Add motivational quote</a>
+  {% endif %}
   <div class="jumbotron text-center">
-    <h1>swimapp</h1>
-    <p class="lead">Scarlet Aquatics</p>
     <h2><a href="https://docs.google.com/document/d/1Y6Bg9_paw6Z3v6o2AtELtieiFf9YQeFXQrU91Tpp9bs/edit?usp=sharing">HowTo: Take attendance</a></h2>
+    <div>
+      <p>{{ body }}</p>
+    </div>
+    <div>
+      <small>{{ author }}</small>
+    </div>
     {% if session.logged_in == NULL %}
       <a href="/login" class="btn btn-success btn-lg">Login</a>
     {% endif %}
