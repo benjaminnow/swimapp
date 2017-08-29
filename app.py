@@ -15,6 +15,7 @@ import time
 import chartkick
 from db import *
 from forms import *
+from job_choosing import *
 import os
 
 app = Flask(__name__)
@@ -153,11 +154,12 @@ def group_dashboard(group):
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers WHERE training_group = %s ORDER BY name ASC", [group])
     swimmers = cur.fetchall()
+    check = isSuperAdmin()
     if result > 0:
-        return render_template('group_dashboard.html', swimmers = swimmers, group=group)
+        return render_template('group_dashboard.html', swimmers = swimmers, group=group, check = check)
     else:
         msg = 'No swimmers found'
-        return render_template('group_dashboard.html', msg = msg)
+        return render_template('group_dashboard.html', msg = msg, check = check)
     conn.close()
 
 def username_already_registered(name):
@@ -305,11 +307,12 @@ def dashboard():
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers ORDER BY name ASC")
     swimmers = cur.fetchall()
+    check = isSuperAdmin()
     if result > 0:
-        return render_template('dashboard.html', swimmers = swimmers)
+        return render_template('dashboard.html', swimmers = swimmers, check = check)
     else:
         msg = 'No swimmers found'
-        return render_template('dashboard.html', msg = msg)
+        return render_template('dashboard.html', msg = msg, check = check)
     conn.close()
 
 def id_generator(size = 9, chars = string.ascii_uppercase + string.digits):
@@ -332,7 +335,7 @@ def add_swimmer():
     return render_template('add_swimmer.html', form = form)
 
 @app.route('/delete_swimmer/<string:id>', methods = ['POST'])
-@is_logged_in_admin
+@is_logged_in_super_admin
 def delete_swimmer(id):
     conn, cur = connection()
     count = cur.execute('SELECT * FROM swimmer_limbo')
@@ -364,6 +367,8 @@ def attending(id):
         cur.execute("UPDATE swimmers SET attending = 1, total = total + %s WHERE id=%s", (float(amount), id_value))
         conn.commit()
         cur.execute("INSERT INTO attendance(id, amount) VALUES(%s, %s)",(id_value, float(amount)))
+        conn.commit()
+        cur.execute('INSERT IGNORE INTO here(id, name, job_total, training_group) SELECT id, name, job_total, training_group FROM swimmers WHERE attending = 1')
         conn.commit()
         conn.close()
         return redirect(url_for('group_dashboard', group=group_id))
@@ -402,15 +407,13 @@ def reset_attending(training_g):
 @is_logged_in_admin
 def here():
     conn, cur = connection()
-    cur.execute('INSERT IGNORE INTO here(id, name, job_total, training_group) SELECT id, name, job_total, training_group FROM swimmers WHERE attending = 1')
-    conn.commit()
     result = cur.execute('SELECT * FROM here')
     swimmers = cur.fetchall()
     if result > 0:
-        return render_template('here.html', swimmers = swimmers)
+        return render_template('here.html', swimmers = swimmers, count = result)
     else:
         msg = 'No swimmers attending found'
-        return render_template('here.html', msg = msg)
+        return render_template('here.html', msg = msg, count = result)
     conn.close()
 
 @app.route('/remove_here/<string:id>', methods = ['POST'])
@@ -426,7 +429,6 @@ def remove_here(id):
     conn.close()
     flash('Swimmer removed from here list', 'success')
     return redirect(url_for('here'))
-
 
 
 @app.route('/add_job', methods = ['GET', 'POST'])
@@ -470,97 +472,6 @@ def remove_job(id):
     conn.commit()
     return redirect(url_for('jobs'))
 
-
-
-def get_min():
-    conn, cur = connection()
-    cur.execute('SELECT minimum FROM jobs')
-    draws = cur.fetchall()
-    count = 0
-    for i in range(len(draws)):
-        count += draws[i]['minimum']
-    return count
-
-def get_available():
-    conn, cur = connection()
-    cur.execute('SELECT COUNT(*) FROM here')
-    people = cur.fetchall()
-    peoplenum = people[0]['COUNT(*)']
-    return peoplenum
-
-def get_job_total():
-    conn, cur = connection()
-    cur.execute('SELECT job_total FROM here')
-    ids = cur.fetchall()
-    total = 0
-    for i in range(len(ids)):
-        total += ids[i]['job_total']
-    conn.close()
-    return total
-
-def high_low():
-    start = 0
-    conn, cur = connection()
-    cur.execute('SELECT job_total, id FROM here')
-    ids = cur.fetchall()
-    for i in range(len(ids)):
-        low = start
-        high = start + ids[i]['job_total']
-        start = high
-        ids[i]['low'] = low
-        ids[i]['high'] = high
-    conn.close()
-    return ids
-
-def choose_people():
-    rangeDict = high_low()
-    rangeList = list(high_low())
-    total = get_job_total()
-    count = get_min()
-    idList = []
-    start = 0
-
-    for i in range(count):
-        randnum = random.randint(1, total + 1)
-        for j in range(len(rangeList)):
-            if randnum > rangeList[j]['low'] and randnum <= rangeList[j]['high']:
-                    idList.append([rangeList[j]['id'], rangeList[j]['job_total']])
-                    total -= rangeList[j]['job_total']
-                    rangeList.pop(j)
-                    break
-
-        for k in range(len(rangeList)):
-            low = start
-            high = start + rangeList[k]['job_total']
-            start = high
-            rangeList[k]['low'] = low
-            rangeList[k]['high'] = high
-        start = 0
-
-    idList.sort(key=itemgetter(1), reverse=True)
-
-    conn, cur = connection()
-    cur.execute('SELECT name, difficulty, minimum, id FROM jobs WHERE dump = 1')
-    job = cur.fetchall()
-    jobName = job[0]['name']
-    jobAmount = job[0]['difficulty']
-    jobId = job[0]['id']
-    for p in range(len(rangeDict)):
-        found = False
-        for q in range(len(idList)):
-            if rangeDict[p]['id'] == idList[q][0]:
-                found = True
-        idnum = rangeDict[p]['id']
-        if not found:
-            cur.execute('INSERT IGNORE INTO jobs_done(id, job_name, job_id, amount) VALUES(%s, %s, %s, %s)', (idnum, jobName, jobId, jobAmount))
-            conn.commit()
-            cur.execute('INSERT INTO jobs_done_history(id, job_name, job_id, amount) VALUES(%s, %s, %s, %s)', (idnum, jobName, jobId, jobAmount))
-            conn.commit()
-            cur.execute('UPDATE swimmers set job_total = job_total + %s WHERE id=%s', (int(jobAmount), idnum))
-            conn.commit()
-    conn.close()
-
-    return idList
 
 @app.route('/choose_jobs')
 @is_logged_in_admin
@@ -628,12 +539,19 @@ def take_credit(id):
     conn, cur = connection()
     if request.method == 'POST':
         amount = request.form['amount']
+        amount = int(amount)
         id_value = request.form['id']
-        cur.execute("UPDATE swimmers SET job_total = job_total - %s WHERE id=%s", (float(amount), id_value))
-        conn.commit()
+        cur.execute('SELECT job_total FROM swimmers WHERE id = %s', [id_value])
+        total = cur.fetchall()
+        total = total[0]['job_total']
+        if total - amount < 1:
+            cur.execute('UPDATE swimmers SET job_total = 1 WHERE id = %s', [id_value])
+            conn.commit()
+        else:
+            cur.execute("UPDATE swimmers SET job_total = job_total - %s WHERE id=%s", (float(amount), id_value))
+            conn.commit()
         conn.close()
         return redirect(url_for('dashboard'))
-
 
 def update_percent():
     conn, cur = connection()
@@ -759,7 +677,7 @@ def login_to_google():
 def archive(id):
     conn, cur = connection()
     if id == 'job_total':
-        cur.execute('UPDATE swimmers SET job_total = 0')
+        cur.execute('UPDATE swimmers SET job_total = 1, attending = 0')
         conn.commit()
         conn.close()
         return redirect(url_for('archive_page'))
@@ -1032,7 +950,8 @@ def quote_of_the_day():
 
 # comment out this when on local machine
 if __name__ == '__main__':
-    app.secret_key = str(os.urandom(24))
+    #app.secret_key = str(os.urandom(24))
+    app.secret_key = "SUPERSECRETKEY"
     app.run(debug = True)
 
 # comment in this when pushing to webserver
