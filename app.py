@@ -486,17 +486,15 @@ def choose_jobs():
     jobs = cur.fetchall()
     jobList = []
     for i in range(len(jobs)):
-        jobList.append([jobs[i]['id'], jobs[i]['minimum'], jobs[i]['difficulty']])
+        jobList.append([jobs[i]['id'], jobs[i]['name'], jobs[i]['minimum'], jobs[i]['difficulty']])
     jobList.sort(key=itemgetter(2))
 
     start = 0
     for k in range(len(jobList)):
         jobId = jobList[k][0]
-        cur.execute('SELECT name, difficulty, minimum FROM jobs WHERE id = %s', [jobId])
-        job = cur.fetchall()
-        jobName = job[0]['name']
-        jobAmount = job[0]['difficulty']
-        jobMinimum = job[0]['minimum'] + start
+        jobName = jobList[k][1]
+        jobAmount = jobList[k][3]
+        jobMinimum = jobList[k][2] + start
 
         for j in range(start, jobMinimum):
             selected = idList[j][0]

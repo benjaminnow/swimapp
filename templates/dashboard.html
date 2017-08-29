@@ -1,6 +1,12 @@
 {% extends 'layout.html' %}
 
 {% block body %}
+<style>
+  .dropdown-btn {
+    padding: 10px;
+    font-size: 16px;
+  }
+</style>
 <script>
   $(window).on('load', function(){
     var clicked = false;
@@ -81,31 +87,31 @@
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="0.5">
                         <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="0.5" class="btn-block">
+                        <input type="submit" value="0.5" class="btn-block dropdown-btn">
                       </form>
                       <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="0.66">
                         <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="0.66" class="btn-block">
+                        <input type="submit" value="0.66" class="btn-block dropdown-btn">
                       </form>
                       <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="0.8">
                         <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="0.8" class="btn-block">
+                        <input type="submit" value="0.8" class="btn-block dropdown-btn">
                       </form>
                       <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="1">
                         <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="1" class="btn-block">
+                        <input type="submit" value="1" class="btn-block dropdown-btn">
                       </form>
                       <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="1.2">
                         <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="1.2" class="btn-block">
+                        <input type="submit" value="1.2" class="btn-block dropdown-btn">
                       </form>
                     </ul>
                   </div>
@@ -120,17 +126,17 @@
                       <form action="{{ url_for('take_credit', id=swimmer.id) }}" method="post" >
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="1">
-                        <input type="submit" value="1" class="btn-block">
+                        <input type="submit" value="1" class="btn-block dropdown-btn">
                       </form>
                       <form action="{{ url_for('take_credit', id=swimmer.id) }}" method="post" >
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="2">
-                        <input type="submit" value="2" class="btn-block">
+                        <input type="submit" value="2" class="btn-block dropdown-btn">
                       </form>
                       <form action="{{ url_for('take_credit', id=swimmer.id) }}" method="post" >
                         <input type="hidden" name="id" value="{{ swimmer.id }}">
                         <input type="hidden" name="amount" value="3">
-                        <input type="submit" value="3" class="btn-block">
+                        <input type="submit" value="3" class="btn-block dropdown-btn">
                       </form>
                     </ul>
                   </div>

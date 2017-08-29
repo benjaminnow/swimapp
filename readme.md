@@ -73,7 +73,7 @@ The job choosing algorithm was made because I think that everyone should be equa
 6. The main purpose of the ```choose_people``` function is to choose people and then sort them into their jobs based on their job totals. People with a higher job total will go into harder jobs. Once those spots are filled, it will continue filling people into jobs with the harder ones being filled up first all the way down to the easiest jobs with people with the lowest job totals.
 7. The ```choose_people``` function takes the dictionary created from the ```high_low``` function and turns it into a list so it can be modified.
 8. The variable ```total = get_job_total()``` gets the whole range and ```count = get_min()``` gets the minimum people needed to complete all the jobs. If this minimum is not met, job choosing will not happen.
-9. Then there is a loop which chooses random numbers in the range. It is ```random.randint(1, total + 1)``` instead of ```random.randint(0, total)``` because the range doesn't use start at 0. This is because a person is chosen if the random number if ```num > low``` and ```num <= high```. This shows that the low value will not lead to a pick.
+9. Then there is a loop which chooses random numbers in the range. It is ```random.randint(1, total)``` instead of ```random.randint(0, total)``` because the range doesn't use start at 0. This is because a person is chosen if the random number if ```num > low``` and ```num <= high```. This shows that the low value will not lead to a pick.
 10. If the random number is within the range, it will add that swimmers' id and job total to the list ```idList```.
 11. After their information has been added to the list it will subtract their job total from the overall total. This reduces the range.
 12. The chosen swimmers' info will then be popped out of the ```rangeList```.
@@ -86,7 +86,8 @@ The job choosing algorithm was made because I think that everyone should be equa
 19. The ```choose_jobs``` function is to select the swimmers for jobs.
 20. It first checks if the minimum people required is greater than the number of people attending practice that day. If it is, then job choosing will not happen.
 21. Then a database connection is made to get the data from the jobs table. It extracts the id, minimum, and difficulty level of each job. Then that list is sorted based on difficulty level in descending order.
-22.
+22. Then the loop puts people into the hardest jobs first. ```start``` and ```jobMinimum``` variables are used in the range because it defines how many people to choose for a job.
+23. Then the chosen people are inserted into the database. The job history table keeps the entries indefinitely while the jobs_done table is just used for the front end.
 
 ## How I Created This
 
@@ -172,3 +173,5 @@ I came up with this idea because I wanted to learn about web development and I w
 * I added the ability to add different training groups instead of being hard coded in
 * I added a motivational quote creator - my head coach is able to login and change the quote which is displayed on the home page
 * Made a requirements.txt file, License file, and a readme to go along with my github project
+
+# Week ten
