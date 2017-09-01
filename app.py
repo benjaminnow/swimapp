@@ -92,17 +92,27 @@ def index():
     else:
         return render_template('home.html', admin_check = admin_check)
 
+def get_group_list():
+    conn, cur = connection()
+    cur.execute('SELECT training_group FROM set_attendance')
+    groups = cur.fetchall()
+    group_list = []
+    for i in range(len(groups)):
+        group_list.append(groups[i]['training_group'])
+    return group_list
+
 @app.route('/swimmers')
 @is_logged_in
 def swimmers():
+    group_list= get_group_list()
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers ORDER BY name ASC")
     swimmers = cur.fetchall()
     if result > 0:
-        return render_template('swimmers.html', swimmers = swimmers)
+        return render_template('swimmers.html', swimmers = swimmers, group_list=group_list)
     else:
         msg = 'No swimmers found'
-        return render_template('swimmers.html', msg = msg)
+        return render_template('swimmers.html', msg = msg, group_list=group_list)
     conn.close()
 
 @app.route('/swimmers/<string:id>')
@@ -138,29 +148,33 @@ def swimmer(id):
 @app.route('/swimmers/training_group/<string:group>')
 @is_logged_in
 def training_group(group):
+    group_list = get_group_list()
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers WHERE training_group = %s", [group])
     swimmers = cur.fetchall()
     if result > 0:
-        return render_template('swimmers_group.html', swimmers = swimmers)
+        return render_template('swimmers_group.html', swimmers = swimmers, group_list=group_list)
     else:
         msg = 'No swimmers found'
-        return render_template('swimmers_group.html', msg = msg)
+        return render_template('swimmers_group.html', msg = msg, group_list=group_list)
     conn.close()
 
 @app.route('/dashboard/training_group/<string:group>', methods = ['GET', 'POST'])
 @is_logged_in_admin
 def group_dashboard(group):
+    group_list = get_group_list()
     form = RemoveAttendanceForm(request.form)
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers WHERE training_group = %s ORDER BY name ASC", [group])
     swimmers = cur.fetchall()
+    cur.execute("SELECT * FROM attendance_amounts")
+    amounts = cur.fetchall()
     check = isSuperAdmin()
     if result > 0:
-        return render_template('group_dashboard.html', swimmers = swimmers, group=group, check = check, form=form)
+        return render_template('group_dashboard.html', swimmers = swimmers, group=group, check = check, form=form, group_list=group_list, amounts=amounts)
     else:
         msg = 'No swimmers found'
-        return render_template('group_dashboard.html', msg = msg, check = check, group=group, form=form)
+        return render_template('group_dashboard.html', msg = msg, check = check, group=group, form=form, group_list=group_list)
     conn.close()
 
 def username_already_registered(name):
@@ -305,16 +319,19 @@ def login():
 @app.route('/dashboard')
 @is_logged_in_admin
 def dashboard():
+    group_list = get_group_list()
     form = RemoveAttendanceForm(request.form)
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers ORDER BY name ASC")
     swimmers = cur.fetchall()
+    cur.execute("SELECT * FROM attendance_amounts")
+    amounts = cur.fetchall()
     check = isSuperAdmin()
     if result > 0:
-        return render_template('dashboard.html', swimmers = swimmers, check = check, form=form)
+        return render_template('dashboard.html', swimmers = swimmers, check = check, form=form, group_list=group_list, amounts=amounts)
     else:
         msg = 'No swimmers found'
-        return render_template('dashboard.html', msg = msg, check = check, form=form)
+        return render_template('dashboard.html', msg = msg, check = check, form=form, group_list=group_list)
     conn.close()
 
 def id_generator(size = 9, chars = string.ascii_uppercase + string.digits):
@@ -472,6 +489,7 @@ def remove_job(id):
     conn, cur = connection()
     cur.execute('DELETE FROM jobs WHERE id=%s', [id])
     conn.commit()
+    conn.close()
     return redirect(url_for('jobs'))
 
 
@@ -968,6 +986,43 @@ def remove_attendance(id):
         conn.close()
         return redirect(url_for('dashboard'))
     return redirect(url_for('dashboard'))
+
+@app.route('/custom_amounts')
+@is_logged_in_admin
+def custom_amounts():
+    conn, cur = connection()
+    result = cur.execute('SELECT * FROM attendance_amounts')
+    amounts = cur.fetchall()
+    return render_template('custom_amounts.html', amounts=amounts)
+
+@app.route('/add_custom_amounts', methods=['GET', 'POST'])
+@is_logged_in_admin
+def add_custom_amounts():
+    form = CustomAmount(request.form)
+    if request.method == 'POST' and form.validate():
+        amount = float(form.amount.data)
+        conn, cur = connection()
+        result = cur.execute('SELECT * FROM attendance_amounts')
+        if result > 0:
+            amounts = cur.fetchall()
+            for i in range(len(amounts)):
+                if amounts[i]['amount'] == amount:
+                    error = 'amount already added'
+                    return render_template('add_custom_amount.html', error=error)
+        cur.execute('INSERT INTO attendance_amounts(amount) VALUES(%s)', [amount])
+        conn.commit()
+        conn.close()
+        return redirect(url_for('custom_amounts'))
+    return render_template('add_custom_amount.html', form = form)
+
+@app.route('/remove_amount/<string:id>', methods=['POST'])
+@is_logged_in_admin
+def remove_amount(id):
+    conn, cur = connection()
+    cur.execute('DELETE FROM attendance_amounts WHERE id=%s', [id])
+    conn.commit()
+    conn.close()
+    return redirect(url_for('custom_amounts'))
 
 # comment out this when on local machine
 if __name__ == '__main__':

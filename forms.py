@@ -1,6 +1,7 @@
 from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, TextField, validators
 from db import *
 
+
 def get_groups():
     conn, cur = connection()
     cur.execute('SELECT training_group FROM set_attendance')
@@ -44,4 +45,7 @@ class QuoteForm(Form):
     author = StringField('Author', [validators.Length(min = 1)])
 
 class RemoveAttendanceForm(Form):
+    amount = DecimalField('Amount', [validators.DataRequired()], places=2)
+
+class CustomAmount(Form):
     amount = DecimalField('Amount', [validators.DataRequired()], places=2)

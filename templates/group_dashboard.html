@@ -3,7 +3,7 @@
 {% block body %}
 <style>
   .dropdown-btn {
-    padding: 10px;
+    padding: 20px;
     font-size: 16px;
   }
 </style>
@@ -31,13 +31,9 @@
     <ul class="dropdown-menu">
       <li><a href="/dashboard">All Swimmers</a></li>
       <li class="divider"></li>
-      <li><a href="/dashboard/training_group/marlin_teal">Marlin Teal</a></li>
-      <li><a href="/dashboard/training_group/marlin_black">Marlin Black</a></li>
-      <li><a href="/dashboard/training_group/wave_teal">Wave Teal</a></li>
-      <li><a href="/dashboard/training_group/wave_black">Wave Black</a></li>
-      <li><a href="/dashboard/training_group/wave_gold">Wave Gold</a></li>
-      <li><a href="/dashboard/training_group/senior_prep">Senior Prep</a></li>
-      <li><a href="/dashboard/training_group/senior">Senior</a></li>
+      {% for group in group_list %}
+        <li><a href="/dashboard/training_group/{{ group }}">{{ group }}</a></li>
+      {% endfor %}
     </ul>
   </div>
   <div>
@@ -97,42 +93,20 @@
               {% else %}
                 <tr id="tr-id" class="tr-class">
               {% endif %}
-                <td id="td-id" class="td-class">{{ swimmer.name }}</td>
+                <td id="td-id" class="td-class"><a href="/swimmers/{{ swimmer.id }}">{{ swimmer.name }}</a></td>
                 <td>
                   <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Amount
                     <span class="caret"></span></button>
                     <ul class="dropdown-menu">
-                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
-                        <input type="hidden" name="id" value="{{ swimmer.id }}">
-                        <input type="hidden" name="amount" value="0.5">
-                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="0.5" class="btn-block dropdown-btn">
-                      </form>
-                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
-                        <input type="hidden" name="id" value="{{ swimmer.id }}">
-                        <input type="hidden" name="amount" value="0.66">
-                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="0.66" class="btn-block dropdown-btn">
-                      </form>
-                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
-                        <input type="hidden" name="id" value="{{ swimmer.id }}">
-                        <input type="hidden" name="amount" value="0.8">
-                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="0.8" class="btn-block dropdown-btn">
-                      </form>
-                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
-                        <input type="hidden" name="id" value="{{ swimmer.id }}">
-                        <input type="hidden" name="amount" value="1">
-                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="1" class="btn-block dropdown-btn">
-                      </form>
-                      <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
-                        <input type="hidden" name="id" value="{{ swimmer.id }}">
-                        <input type="hidden" name="amount" value="1.2">
-                        <input type="hidden" name="group" value="{{ swimmer.training_group }}">
-                        <input type="submit" value="1.2" class="btn-block dropdown-btn">
-                      </form>
+                      {% for amount in amounts %}
+                        <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
+                          <input type="hidden" name="id" value="{{ swimmer.id }}">
+                          <input type="hidden" name="amount" value="{{ amount.amount }}">
+                          <input type="hidden" name="group" value="{{ swimmer.training_group }}">
+                          <input type="submit" value="{{ amount.amount }}" class="btn-block dropdown-btn">
+                        </form>
+                      {% endfor %}
                     </ul>
                   </div>
                 </td>

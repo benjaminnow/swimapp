@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h2>Amounts</h2>
+<a class="btn btn-success" style="margin-bottom: 10px" href="/add_custom_amounts">Add amount</a>
+<div class="container">
+  <table id="table"
+         data-toggle="table"
+         data-height=""
+         data-url=""
+         data-sort-name="amount"
+         data-sort-order="desc"
+         data-pagination="true"
+         data-page-list="[5, 10, All]"
+         data-search="false">
+      <thead>
+      <tr>
+          <th data-field="amount" data-sortable="true">Amount</th>
+          <th>Delete</th>
+      </tr>
+      </thead>
+      <tbody>
+        {% for amount in amounts %}
+          <tr id="tr-id" class="tr-class">
+            <td id="td-id" class="td-class">{{ amount.amount }}</td>
+            <td>
+              <form action="{{ url_for('remove_amount', id=amount.id) }}" method = "post">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="submit" value="Remove" class="btn btn-danger">
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+  </table>
+</div>
+{% endblock %}
