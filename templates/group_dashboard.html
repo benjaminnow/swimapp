@@ -84,6 +84,7 @@
               <th data-field="name" data-sortable="true">Name</th>
               <th data-field="attending" data-sortable="false">Attending</th>
               <th data-field="total" data-sortable="true">Total</th>
+              <th data-field="remove_attendance" data-sortable="false">Remove Att</th>
               <th data-field="job_total" data-sortable="true">Job Total</th>
               <th data-field="take_credit" data-sortable="false">Take Credit</th>
               <th data-field="delete" data-sortable="false"></th>
@@ -136,6 +137,21 @@
                   </div>
                 </td>
                 <td>{{ swimmer.total }}</td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Amount
+                    <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      {% from "includes/_formhelpers.html" import render_field %}
+                      <form method="POST" action="/remove_attendance/{{ swimmer.id }}">
+                        <div class="form-group">
+                          {{ render_field(form.amount, class_="form-control") }}
+                        </div>
+                        <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+                      </form>
+                    </ul>
+                  </div>
+                </td>
                 <td>{{ swimmer.job_total }}</td>
                 <td>
                   <div class="dropdown">

@@ -42,3 +42,6 @@ class GroupForm(Form):
 class QuoteForm(Form):
     body = TextField('Quote', [validators.Length(min = 1)])
     author = StringField('Author', [validators.Length(min = 1)])
+
+class RemoveAttendanceForm(Form):
+    amount = DecimalField('Amount', [validators.DataRequired()], places=2)

@@ -11,7 +11,7 @@ This is a website which is made specifically for my swim team. It keeps track of
 * set attendance for the day - the total attendance a swimmer could get if they showed up to the whole practice
 * archival tool - exports data from mysql database into google sheets of coach
 * attendance graph for each swimmer
-* motivation quote adder for coach
+* motivational quote adder for coach
 
 ## Getting Started
 
@@ -23,6 +23,7 @@ To get this project up and running on localhost:
 5. run "python app.py"
 
 ## Screenshots/Gifs
+
 
 ## Deployment
 
@@ -87,7 +88,7 @@ The job choosing algorithm was made because I think that everyone should be equa
 20. It first checks if the minimum people required is greater than the number of people attending practice that day. If it is, then job choosing will not happen.
 21. Then a database connection is made to get the data from the jobs table. It extracts the id, minimum, and difficulty level of each job. Then that list is sorted based on difficulty level in descending order.
 22. Then the loop puts people into the hardest jobs first. ```start``` and ```jobMinimum``` variables are used in the range because it defines how many people to choose for a job.
-23. Then the chosen people are inserted into the database. The job history table keeps the entries indefinitely while the jobs_done table is just used for the front end.
+23. Then the chosen people are inserted into the database. The job history table keeps the entries indefinitely while the jobs_done table is used for the front end.
 
 ## How I Created This
 
@@ -175,3 +176,6 @@ I came up with this idea because I wanted to learn about web development and I w
 * Made a requirements.txt file, License file, and a readme to go along with my github project
 
 # Week ten
+
+* I fixed the job choosing algorithm because it would break when there were only 10 people available at practice.
+* Added enable delete button so coach doesn't accidentally delete swimmer

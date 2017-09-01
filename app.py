@@ -151,15 +151,16 @@ def training_group(group):
 @app.route('/dashboard/training_group/<string:group>', methods = ['GET', 'POST'])
 @is_logged_in_admin
 def group_dashboard(group):
+    form = RemoveAttendanceForm(request.form)
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers WHERE training_group = %s ORDER BY name ASC", [group])
     swimmers = cur.fetchall()
     check = isSuperAdmin()
     if result > 0:
-        return render_template('group_dashboard.html', swimmers = swimmers, group=group, check = check)
+        return render_template('group_dashboard.html', swimmers = swimmers, group=group, check = check, form=form)
     else:
         msg = 'No swimmers found'
-        return render_template('group_dashboard.html', msg = msg, check = check)
+        return render_template('group_dashboard.html', msg = msg, check = check, group=group, form=form)
     conn.close()
 
 def username_already_registered(name):
@@ -304,15 +305,16 @@ def login():
 @app.route('/dashboard')
 @is_logged_in_admin
 def dashboard():
+    form = RemoveAttendanceForm(request.form)
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers ORDER BY name ASC")
     swimmers = cur.fetchall()
     check = isSuperAdmin()
     if result > 0:
-        return render_template('dashboard.html', swimmers = swimmers, check = check)
+        return render_template('dashboard.html', swimmers = swimmers, check = check, form=form)
     else:
         msg = 'No swimmers found'
-        return render_template('dashboard.html', msg = msg, check = check)
+        return render_template('dashboard.html', msg = msg, check = check, form=form)
     conn.close()
 
 def id_generator(size = 9, chars = string.ascii_uppercase + string.digits):
@@ -534,8 +536,8 @@ def delete_chosen():
 @app.route('/take_credit/<string:id>', methods = ['POST'])
 @is_logged_in_admin
 def take_credit(id):
-    conn, cur = connection()
     if request.method == 'POST':
+        conn, cur = connection()
         amount = request.form['amount']
         amount = int(amount)
         id_value = request.form['id']
@@ -928,7 +930,7 @@ def print_access_codes():
     export_to_sheets('Swimmer Access Codes', get_access_codes())
     return redirect(url_for('archive_page'))
 
-@app.route('/quote_of_the_day', methods = ['GET', 'POST'])
+@app.route('/quote_of_the_day', methods=['GET', 'POST'])
 @is_logged_in_super_admin
 def quote_of_the_day():
     form = QuoteForm(request.form)
@@ -946,9 +948,29 @@ def quote_of_the_day():
         return redirect(url_for('index'))
     return render_template('add_quote.html', form = form)
 
+
+@app.route('/remove_attendance/<string:id>', methods=['GET', 'POST'])
+@is_logged_in_admin
+def remove_attendance(id):
+    form = RemoveAttendanceForm(request.form)
+    if request.method == 'POST' and form.validate():
+        conn, cur = connection()
+        amount = float(form.amount.data)
+        cur.execute('SELECT total FROM swimmers WHERE id = %s', [id])
+        total = cur.fetchall()
+        total = total[0]['total']
+        if total - amount < 1:
+            cur.execute('UPDATE swimmers SET total = 0 WHERE id = %s', [id])
+            conn.commit()
+        else:
+            cur.execute("UPDATE swimmers SET total = total - %s WHERE id=%s", (amount, id))
+            conn.commit()
+        conn.close()
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('dashboard'))
+
 # comment out this when on local machine
 if __name__ == '__main__':
-    #app.secret_key = str(os.urandom(24))
     app.secret_key = "SUPERSECRETKEY"
     app.run(debug = True)
 
