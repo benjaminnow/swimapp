@@ -133,7 +133,10 @@ def swimmer(id):
     else:
         attendance = cur.fetchall()
         attendanceTotal = attendance[0]['total']
-        percent = swimmerTotal/attendanceTotal * 100
+        if attendanceTotal == 0:
+            percent = 'NaN'
+        else:
+            percent = swimmerTotal/attendanceTotal * 100
 
     cur.execute('SELECT percent, date FROM weekly_attendance_history WHERE id = %s ', [id])
     data = cur.fetchall()
@@ -165,7 +168,7 @@ def group_dashboard(group):
     group_list = get_group_list()
     form = RemoveAttendanceForm(request.form)
     conn, cur = connection()
-    result = cur.execute("SELECT * FROM swimmers WHERE training_group = %s ORDER BY name ASC", [group])
+    result = cur.execute("SELECT * FROM swimmers WHERE training_group = %s", [group])
     swimmers = cur.fetchall()
     cur.execute("SELECT * FROM attendance_amounts")
     amounts = cur.fetchall()
@@ -322,7 +325,7 @@ def dashboard():
     group_list = get_group_list()
     form = RemoveAttendanceForm(request.form)
     conn, cur = connection()
-    result = cur.execute("SELECT * FROM swimmers ORDER BY name ASC")
+    result = cur.execute("SELECT * FROM swimmers")
     swimmers = cur.fetchall()
     cur.execute("SELECT * FROM attendance_amounts")
     amounts = cur.fetchall()
@@ -356,7 +359,12 @@ def add_swimmer():
 @app.route('/delete_swimmer/<string:id>', methods = ['POST'])
 @is_logged_in_super_admin
 def delete_swimmer(id):
+    group_list = get_group_list()
+    form = RemoveAttendanceForm(request.form)
+    check = isSuperAdmin()
     conn, cur = connection()
+    cur.execute("SELECT * FROM attendance_amounts")
+    amounts = cur.fetchall()
     count = cur.execute('SELECT * FROM swimmer_limbo')
     if count > 0:
         cur.execute('DELETE FROM swimmer_limbo')
@@ -368,12 +376,12 @@ def delete_swimmer(id):
     conn.commit()
     cur.execute("DELETE FROM attendance WHERE id=%s", [id])
     conn.commit()
-    cur.execute("SELECT * FROM swimmers ORDER BY name ASC")
+    cur.execute("SELECT * FROM swimmers")
     swimmers = cur.fetchall()
     conn.close()
     flash('Swimmer deleted', 'success')
     undo = 'Undo delete?'
-    return render_template('dashboard.html', undo = undo, swimmers = swimmers)
+    return render_template('dashboard.html', undo = undo, swimmers = swimmers, check = check, form=form, group_list=group_list, amounts=amounts)
 
 @app.route('/attending/<string:id>', methods = ['POST'])
 @is_logged_in_admin

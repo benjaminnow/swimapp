@@ -20,6 +20,17 @@
         }
     });
   });
+
+  function last_name_sort(a, b) {
+    var a = $(a).text();
+    var b = $(b).text();
+    a = a.substr(a.indexOf(' ')+1);
+    b = b.substr(b.indexOf(' ')+1);
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  }
+
 </script>
 <!DOCTYPE html>
 <html>
@@ -49,8 +60,6 @@
   <div class="container">
       <table id="table"
              data-toggle="table"
-             data-height=""
-             data-url=""
              data-sort-name="name"
              data-sort-order="asc"
              data-pagination="true"
@@ -58,7 +67,7 @@
              data-search="true">
           <thead>
           <tr>
-              <th data-field="name" data-sortable="true">Name</th>
+              <th data-field="name" data-sortable="true" data-sorter="last_name_sort">Name</th>
               <th data-field="attending" data-sortable="false">Attending</th>
               <th data-field="total" data-sortable="true">Total</th>
               <th data-field="remove_attendance" data-sortable="false">Remove Att</th>
