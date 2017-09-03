@@ -170,7 +170,7 @@ def group_dashboard(group):
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers WHERE training_group = %s", [group])
     swimmers = cur.fetchall()
-    cur.execute("SELECT * FROM attendance_amounts")
+    cur.execute("SELECT * FROM attendance_amounts ORDER BY amount ASC")
     amounts = cur.fetchall()
     check = isSuperAdmin()
     if result > 0:
@@ -327,7 +327,7 @@ def dashboard():
     conn, cur = connection()
     result = cur.execute("SELECT * FROM swimmers")
     swimmers = cur.fetchall()
-    cur.execute("SELECT * FROM attendance_amounts")
+    cur.execute("SELECT * FROM attendance_amounts ORDER BY amount ASC")
     amounts = cur.fetchall()
     check = isSuperAdmin()
     if result > 0:
