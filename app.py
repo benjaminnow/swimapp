@@ -1,5 +1,5 @@
 from __future__ import print_function
-from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
+from flask import Flask, render_template, flash, redirect, url_for, session, logging, request, jsonify
 #import pymysql
 #from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, validators
 from passlib.hash import sha256_crypt
@@ -383,14 +383,16 @@ def delete_swimmer(id):
     undo = 'Undo delete?'
     return render_template('dashboard.html', undo = undo, swimmers = swimmers, check = check, form=form, group_list=group_list, amounts=amounts)
 
-@app.route('/attending/<string:id>', methods = ['POST'])
+@app.route('/attending', methods = ['POST'])
 @is_logged_in_admin
-def attending(id):
-    conn, cur = connection()
+def attending():
     if request.method == 'POST':
+        conn, cur = connection()
         amount = request.form['amount']
         group_id = request.form['group']
         id_value = request.form['id']
+        cur.execute('SELECT total FROM swimmers WHERE id=%s', [id_value])
+        current_amount = cur.fetchall()[0]['total']
         cur.execute("UPDATE swimmers SET attending = 1, total = total + %s WHERE id=%s", (float(amount), id_value))
         conn.commit()
         cur.execute("INSERT INTO attendance(id, amount) VALUES(%s, %s)",(id_value, float(amount)))
@@ -398,7 +400,8 @@ def attending(id):
         cur.execute('INSERT IGNORE INTO here(id, name, job_total, training_group) SELECT id, name, job_total, training_group FROM swimmers WHERE attending = 1')
         conn.commit()
         conn.close()
-        return redirect(url_for('group_dashboard', group=group_id))
+        new_amount = current_amount + float(amount)
+        return jsonify({'id' : id_value, 'amount' : new_amount})
 
 
 @app.route('/logout')
