@@ -31,6 +31,34 @@
     return 0;
   }
 
+  $(document).ready(function() {
+  	$('.attendance_form').on('submit', function(event) {
+      var id_val = $(this).find('#id');
+      var amount_val = $(this).find('#amount');
+      var group_val = $(this).find('#group');
+      $(".attendance_dropdown").attr('class', 'dropdown attendance_dropdown')
+
+  		$.ajax({
+  			data : {
+  				id : id_val.val(),
+  				amount : amount_val.val(),
+          group : group_val.val()
+  			},
+  			type : 'POST',
+  			url : '/attending'
+  		})
+  		.done(function(data) {
+        var id = data.id;
+        var row = '#tr-id-' + id;
+        var total = '#total-' + id;
+        var amount = Number(Math.round(data.amount+'e2')+'e-2');
+        $(total).text(amount);
+        $(row).attr('class', 'tr-class success');
+  		});
+  		event.preventDefault();
+  	});
+  });
+
 </script>
 <!DOCTYPE html>
 <html>
@@ -79,28 +107,28 @@
           <tbody>
             {% for swimmer in swimmers %}
               {% if swimmer.attending == 1 %}
-                <tr id="tr-id" class="tr-class success">
+                <tr id="tr-id-{{ swimmer.id }}" class="tr-class success">
               {% else %}
-                <tr id="tr-id" class="tr-class">
+                <tr id="tr-id-{{ swimmer.id }}" class="tr-class">
               {% endif %}
                 <td id="td-id" class="td-class"><a href="/swimmers/{{ swimmer.id }}">{{ swimmer.name }}</a></td>
                 <td>
-                  <div class="dropdown">
+                  <div class="dropdown attendance_dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Amount
                     <span class="caret"></span></button>
                     <ul class="dropdown-menu">
                       {% for amount in amounts %}
-                        <form action="{{ url_for('attending', id=swimmer.id) }}" method="post" >
-                          <input type="hidden" name="id" value="{{ swimmer.id }}">
-                          <input type="hidden" name="amount" value="{{ amount.amount }}">
-                          <input type="hidden" name="group" value="{{ swimmer.training_group }}">
+                        <form class="attendance_form" method="post" >
+                          <input type="hidden" id="id" name="id" value="{{ swimmer.id }}">
+                          <input type="hidden" id="amount" name="amount" value="{{ amount.amount }}">
+                          <input type="hidden" id="group" name="group" value="{{ swimmer.training_group }}">
                           <input type="submit" style="-webkit-appearance: none;" value="{{ amount.amount }}" class="btn-block dropdown-btn">
                         </form>
                       {% endfor %}
                     </ul>
                   </div>
                 </td>
-                <td>{{ swimmer.total }}</td>
+                <td id="total-{{ swimmer.id }}">{{ swimmer.total }}</td>
                 <td>
                   <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Amount
@@ -151,6 +179,8 @@
           </tbody>
       </table>
   </div>
+  <div id="successAlert" class="alert alert-success" role="alert" style="display:none;"></div>
+	<div id="errorAlert" class="alert alert-danger" role="alert" style="display:none;"></div>
 </body>
 </html>
 
