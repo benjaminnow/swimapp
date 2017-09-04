@@ -402,7 +402,6 @@ def attending():
         conn.close()
         new_amount = current_amount + float(amount)
         return jsonify({'id' : id_value, 'amount' : new_amount})
-        #return redirect(url_for('group_dashboard', group=group_id))
 
 
 @app.route('/logout')
