@@ -21,15 +21,13 @@ app = Flask(__name__)
 app.jinja_env.add_extension("chartkick.ext.charts")
 
 
+
 def isSuperAdmin():
     session_username = session['username']
     conn, cur = connection()
     cur.execute('SELECT * FROM users WHERE username=%s', [session_username])
-    name_user = cur.fetchone()
-    ids = name_user['id']
-    cur.execute('SELECT * FROM users WHERE id=%s', [ids])
-    user = cur.fetchone()
-    super_admin = user['super_admin']
+    name_user = cur.fetchall()
+    super_admin = name_user[0]['super_admin']
     conn.close()
     return super_admin
 
@@ -37,11 +35,8 @@ def is_admin():
     session_username = session['username']
     conn, cur = connection()
     cur.execute('SELECT * FROM users WHERE username=%s', [session_username])
-    name_user = cur.fetchone()
-    ids = name_user['id']
-    cur.execute('SELECT * FROM users WHERE id=%s', [ids])
-    user = cur.fetchone()
-    admin = user['admin']
+    name_user = cur.fetchall()
+    admin = name_user[0]['admin']
     conn.close()
     return admin
 
@@ -74,6 +69,16 @@ def is_logged_in_super_admin(f):
             flash('Access Denied', 'danger')
             return redirect(url_for('login'))
     return wrap
+
+@is_logged_in
+def get_session_id():
+    session_username = session['username']
+    conn, cur = connection()
+    cur.execute('SELECT id FROM users WHERE username=%s', [session_username])
+    name_user = cur.fetchall()
+    idnum = name_user[0]['id']
+    conn.close()
+    return idnum
 
 @app.route('/')
 def index():
@@ -1087,7 +1092,35 @@ def remove_default_value(id):
 @app.route('/configure')
 @is_logged_in_admin
 def configure():
-    return render_template('configure.html')
+    conn, cur = connection()
+    idnum = get_session_id()
+    cur.execute('SELECT default_group FROM users WHERE id=%s', [idnum])
+    group = cur.fetchall()[0]['default_group']
+    return render_template('configure.html', group=group)
+
+@app.route('/set_default_group', methods=['GET', 'POST'])
+@is_logged_in_admin
+def set_default_group():
+    form = DefaultGroup(request.form)
+    if request.method == 'POST' and form.validate():
+        conn, cur = connection()
+        idnum = get_session_id()
+        group = form.group.data
+        cur.execute('UPDATE users SET default_group=%s WHERE id=%s', (group, idnum))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('configure'))
+    return render_template('set_default_group.html', form=form)
+
+@app.context_processor
+def change_dashboard():
+    if 'logged_in' in session:
+        conn, cur = connection()
+        cur.execute('SELECT default_group FROM users WHERE id=%s', [get_session_id()])
+        navbar_group = cur.fetchall()[0]['default_group']
+        return dict(navbar_group=navbar_group)
+    else:
+        return dict(navbar_group='none')
 
 
 # comment out this when on local machine

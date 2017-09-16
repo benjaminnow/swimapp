@@ -53,3 +53,6 @@ class CustomAmount(Form):
 class DefaultValue(Form):
     amount = DecimalField('Default Amount', [validators.DataRequired()], places=2)
     group = SelectField('Group', choices = get_groups())
+
+class DefaultGroup(Form):
+    group = SelectField('Group', choices = get_groups())
