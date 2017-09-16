@@ -112,6 +112,7 @@
           <thead>
           <tr>
               <th data-field="name" data-sortable="true" data-sorter="last_name_sort">Name</th>
+              <th data-field="default" data-sortable="false">Default</th>
               <th data-field="attending" data-sortable="false">Attending</th>
               <th data-field="total" data-sortable="true">Total</th>
               <th data-field="remove_attendance" data-sortable="false">Remove Att</th>
@@ -128,6 +129,18 @@
                 <tr id="tr-id-{{ swimmer.id }}" class="tr-class">
               {% endif %}
                 <td id="td-id" class="td-class"><a href="/swimmers/{{ swimmer.id }}">{{ swimmer.name }}</a></td>
+                <td>
+                  <form class="attendance_form" method="post" >
+                    <input type="hidden" id="id" name="id" value="{{ swimmer.id }}">
+                    {% for value in default_values %}
+                      {% if value.training_group == swimmer.training_group %}
+                        <input type="hidden" id="amount" name="amount" value="{{ value.value }}">
+                        <input type="hidden" id="group" name="group" value="{{ swimmer.training_group }}">
+                        <input type="submit" value="{{ value.value }}" class="btn btn-primary">
+                      {% endif %}
+                    {% endfor %}
+                  </form>
+                </td>
                 <td>
                   <div class="dropdown attendance_dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Amount
@@ -185,10 +198,10 @@
                   </div>
                 </td>
                 <td>
-                  <form action="{{ url_for('delete_swimmer', id=swimmer.id) }}" method = "post">
-                    <input type="hidden" name="_method" value="DELETE">
-                    <input type="submit" value="Delete" class="btn btn-danger deletebtn disabled">
-                  </form>
+                    <form action="{{ url_for('delete_swimmer', id=swimmer.id) }}" method = "post">
+                      <input type="hidden" name="_method" value="DELETE">
+                      <input type="submit" value="Delete" class="btn btn-danger deletebtn disabled">
+                    </form>
                 </td>
               </tr>
             {% endfor %}

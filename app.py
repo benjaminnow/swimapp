@@ -1,7 +1,6 @@
 from __future__ import print_function
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request, jsonify
-#import pymysql
-#from wtforms import Form, StringField, PasswordField, SelectField, IntegerField, BooleanField, DecimalField, validators
+import passlib
 from passlib.hash import sha256_crypt
 from functools import wraps
 import random
@@ -172,8 +171,10 @@ def group_dashboard(group):
     swimmers = cur.fetchall()
     cur.execute("SELECT * FROM attendance_amounts ORDER BY amount ASC")
     amounts = cur.fetchall()
+    cur.execute('SELECT * FROM default_values')
+    default_values = cur.fetchall()
     if result > 0:
-        return render_template('group_dashboard.html', swimmers = swimmers, group=group, form=form, group_list=group_list, amounts=amounts)
+        return render_template('group_dashboard.html', swimmers = swimmers, group=group, form=form, group_list=group_list, amounts=amounts, default_values=default_values)
     else:
         msg = 'No swimmers found'
         return render_template('group_dashboard.html', msg = msg, group=group, form=form, group_list=group_list)
@@ -328,8 +329,10 @@ def dashboard():
     swimmers = cur.fetchall()
     cur.execute("SELECT * FROM attendance_amounts ORDER BY amount ASC")
     amounts = cur.fetchall()
+    cur.execute('SELECT * FROM default_values')
+    default_values = cur.fetchall()
     if result > 0:
-        return render_template('dashboard.html', swimmers = swimmers, form=form, group_list=group_list, amounts=amounts)
+        return render_template('dashboard.html', swimmers = swimmers, form=form, group_list=group_list, amounts=amounts, default_values=default_values)
     else:
         msg = 'No swimmers found'
         return render_template('dashboard.html', msg = msg, form=form, group_list=group_list)
@@ -359,11 +362,12 @@ def add_swimmer():
 def delete_swimmer(id):
     group_list = get_group_list()
     form = RemoveAttendanceForm(request.form)
-    check = isSuperAdmin()
     conn, cur = connection()
     cur.execute("SELECT * FROM attendance_amounts")
     amounts = cur.fetchall()
     count = cur.execute('SELECT * FROM swimmer_limbo')
+    cur.execute('SELECT * FROM default_values')
+    default_values = cur.fetchall()
     if count > 0:
         cur.execute('DELETE FROM swimmer_limbo')
         conn.commit()
@@ -379,7 +383,7 @@ def delete_swimmer(id):
     conn.close()
     flash('Swimmer deleted', 'success')
     undo = 'Undo delete?'
-    return render_template('dashboard.html', undo = undo, swimmers = swimmers, check = check, form=form, group_list=group_list, amounts=amounts)
+    return render_template('dashboard.html', undo = undo, swimmers = swimmers, form=form, group_list=group_list, amounts=amounts, default_values=default_values)
 
 @app.route('/attending', methods = ['POST'])
 @is_logged_in_admin
@@ -983,14 +987,20 @@ def remove_attendance(id):
     if request.method == 'POST' and form.validate():
         conn, cur = connection()
         amount = float(form.amount.data)
+        if amount > 9.99:
+            return redirect(url_for('dashboard'))
         cur.execute('SELECT total FROM swimmers WHERE id = %s', [id])
         total = cur.fetchall()
         total = total[0]['total']
         if total - amount < 1:
             cur.execute('UPDATE swimmers SET total = 0, attending = 0 WHERE id = %s', [id])
             conn.commit()
+            cur.execute('INSERT INTO attendance(id, amount) VALUES(%s, %s)', (id, amount*(-1)))
+            conn.commit()
         else:
             cur.execute("UPDATE swimmers SET total = total - %s, attending = 0 WHERE id=%s", (amount, id))
+            conn.commit()
+            cur.execute('INSERT INTO attendance(id, amount) VALUES(%s, %s)', (id, amount*(-1)))
             conn.commit()
         conn.close()
         return redirect(url_for('dashboard'))
@@ -1033,7 +1043,7 @@ def remove_amount(id):
     conn.close()
     return redirect(url_for('custom_amounts'))
 
-@app.route('/add_default_values', methods=['POST'])
+@app.route('/add_default_values', methods=['GET', 'POST'])
 @is_logged_in_admin
 def add_default_values():
     form = DefaultValue(request.form)
@@ -1045,12 +1055,16 @@ def add_default_values():
         if result > 0:
             cur.execute('DELETE FROM default_values WHERE training_group=%s', [group])
             conn.commit()
-            cur.execute('INSERT default_values(group, amount) VALUES(%s, %s)', (group, amount))
+            cur.execute('INSERT INTO default_values(training_group, value) VALUES(%s, %s)', (group, amount))
             conn.commit()
+            return redirect(url_for('default_values'))
         else:
-            cur.execute('INSERT default_values(group, amount) VALUES(%s, %s)', (group, amount))
+            cur.execute('INSERT INTO default_values(training_group, value) VALUES(%s, %s)', (group, amount))
             conn.commit()
-    conn.close()
+            return redirect(url_for('default_values'))
+        conn.close()
+    return render_template('add_default_values.html', form=form)
+
 
 @app.route('/default_values')
 @is_logged_in_admin
@@ -1060,6 +1074,20 @@ def default_values():
     values = cur.fetchall()
     conn.close()
     return render_template('default_values.html', values=values)
+
+@app.route('/remove_default_value/<string:id>', methods=['POST'])
+@is_logged_in_admin
+def remove_default_value(id):
+    conn, cur = connection()
+    cur.execute('DELETE FROM default_values WHERE id=%s', [id])
+    conn.commit()
+    conn.close()
+    return redirect(url_for('default_values'))
+
+@app.route('/configure')
+@is_logged_in_admin
+def configure():
+    return render_template('configure.html')
 
 
 # comment out this when on local machine

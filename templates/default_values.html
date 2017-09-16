@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Default Values List</h1>
+  <a class="btn btn-success" href="/add_default_values">Add value</a>
+  <table class="table table-striped">
+    <tr>
+      <th>Training Group<th>
+      <th>Amount<th>
+      <th><th>
+    </tr>
+    {% for value in values %}
+      <tr>
+        <td>{{ value.value }}<td>
+        <td>{{ value.training_group }}<td>
+        <td>
+          <form action="{{ url_for('remove_default_value', id=value.id) }}" method = "post">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Remove" class="btn btn-danger">
+          </form>
+        <td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

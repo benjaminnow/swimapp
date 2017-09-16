@@ -4,3 +4,6 @@ client_secret_local.json
 update_percent.py
 dump.sql
 *.pyc
+create_test_users.py
+/venv
+templates/pictures

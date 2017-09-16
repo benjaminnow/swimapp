@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<html>
+  <body>
+    <h1>Configure</h1>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Configure custom attendance amounts</h3>
+      </div>
+      <div class="panel-body">
+        <a href="/custom_amounts" class="btn btn-default">Custom Amounts</a>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Configure default attendance values</h3>
+      </div>
+      <div class="panel-body">
+        <a href="/default_values" class="btn btn-default">Default Values</a>
+      </div>
+    </div>
+  </body>
+</html>
+{% endblock %}
