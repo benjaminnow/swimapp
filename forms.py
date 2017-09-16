@@ -49,3 +49,7 @@ class RemoveAttendanceForm(Form):
 
 class CustomAmount(Form):
     amount = DecimalField('Amount', [validators.DataRequired()], places=2)
+
+class DefaultValue(Form):
+    amount = DecimalField('Default Amount', [validators.DataRequired()], places=2)
+    group = SelectField('Group', choices = get_groups())

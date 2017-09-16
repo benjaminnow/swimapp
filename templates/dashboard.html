@@ -80,9 +80,7 @@
     <form action="{{ url_for('reset_all_attending') }}" method="post" style="display: inline-block;">
       <input type="submit" value="Reset All" class="btn btn-danger">
     </form>
-    {% if check == 1 %}
-      <button id="enableDelete" style="display: inline-block;" class="btn btn-danger">Enable Delete</button>
-    {% endif %}
+    <button id="enableDelete" style="display: inline-block;" class="btn btn-danger">Enable Delete</button>
   </div>
   <hr>
   <div class="container">
@@ -90,7 +88,7 @@
              data-toggle="table"
              data-sort-name="name"
              data-sort-order="asc"
-             data-pagination="true"
+             data-pagination="false"
              data-page-list="[5, 10, 20, 50, 100, 200, All]"
              data-search="true">
           <thead>

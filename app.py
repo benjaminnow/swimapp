@@ -172,12 +172,11 @@ def group_dashboard(group):
     swimmers = cur.fetchall()
     cur.execute("SELECT * FROM attendance_amounts ORDER BY amount ASC")
     amounts = cur.fetchall()
-    check = isSuperAdmin()
     if result > 0:
-        return render_template('group_dashboard.html', swimmers = swimmers, group=group, check = check, form=form, group_list=group_list, amounts=amounts)
+        return render_template('group_dashboard.html', swimmers = swimmers, group=group, form=form, group_list=group_list, amounts=amounts)
     else:
         msg = 'No swimmers found'
-        return render_template('group_dashboard.html', msg = msg, check = check, group=group, form=form, group_list=group_list)
+        return render_template('group_dashboard.html', msg = msg, group=group, form=form, group_list=group_list)
     conn.close()
 
 def username_already_registered(name):
@@ -329,12 +328,11 @@ def dashboard():
     swimmers = cur.fetchall()
     cur.execute("SELECT * FROM attendance_amounts ORDER BY amount ASC")
     amounts = cur.fetchall()
-    check = isSuperAdmin()
     if result > 0:
-        return render_template('dashboard.html', swimmers = swimmers, check = check, form=form, group_list=group_list, amounts=amounts)
+        return render_template('dashboard.html', swimmers = swimmers, form=form, group_list=group_list, amounts=amounts)
     else:
         msg = 'No swimmers found'
-        return render_template('dashboard.html', msg = msg, check = check, form=form, group_list=group_list)
+        return render_template('dashboard.html', msg = msg, form=form, group_list=group_list)
     conn.close()
 
 def id_generator(size = 9, chars = string.ascii_uppercase + string.digits):
@@ -357,7 +355,7 @@ def add_swimmer():
     return render_template('add_swimmer.html', form = form)
 
 @app.route('/delete_swimmer/<string:id>', methods = ['POST'])
-@is_logged_in_super_admin
+@is_logged_in_admin
 def delete_swimmer(id):
     group_list = get_group_list()
     form = RemoveAttendanceForm(request.form)
@@ -675,7 +673,7 @@ def archive_page():
 @app.route('/oauth2callback')
 def oauth2callback():
   flow = client.flow_from_clientsecrets(
-      'client_secret_local.json',
+      'client_secret.json',
       scope='https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive',
       redirect_uri=url_for('oauth2callback', _external=True)
       )
@@ -989,10 +987,10 @@ def remove_attendance(id):
         total = cur.fetchall()
         total = total[0]['total']
         if total - amount < 1:
-            cur.execute('UPDATE swimmers SET total = 0 WHERE id = %s', [id])
+            cur.execute('UPDATE swimmers SET total = 0, attending = 0 WHERE id = %s', [id])
             conn.commit()
         else:
-            cur.execute("UPDATE swimmers SET total = total - %s WHERE id=%s", (amount, id))
+            cur.execute("UPDATE swimmers SET total = total - %s, attending = 0 WHERE id=%s", (amount, id))
             conn.commit()
         conn.close()
         return redirect(url_for('dashboard'))
@@ -1034,6 +1032,35 @@ def remove_amount(id):
     conn.commit()
     conn.close()
     return redirect(url_for('custom_amounts'))
+
+@app.route('/add_default_values', methods=['POST'])
+@is_logged_in_admin
+def add_default_values():
+    form = DefaultValue(request.form)
+    if request.method == 'POST' and form.validate():
+        conn, cur = connection()
+        amount = float(form.amount.data)
+        group = form.group.data
+        result = cur.execute('SELECT * FROM default_values WHERE training_group=%s', [group])
+        if result > 0:
+            cur.execute('DELETE FROM default_values WHERE training_group=%s', [group])
+            conn.commit()
+            cur.execute('INSERT default_values(group, amount) VALUES(%s, %s)', (group, amount))
+            conn.commit()
+        else:
+            cur.execute('INSERT default_values(group, amount) VALUES(%s, %s)', (group, amount))
+            conn.commit()
+    conn.close()
+
+@app.route('/default_values')
+@is_logged_in_admin
+def default_values():
+    conn, cur = connection()
+    cur.execute('SELECT * FROM default_values')
+    values = cur.fetchall()
+    conn.close()
+    return render_template('default_values.html', values=values)
+
 
 # comment out this when on local machine
 if __name__ == '__main__':
