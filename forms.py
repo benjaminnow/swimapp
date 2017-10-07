@@ -56,3 +56,6 @@ class DefaultValue(Form):
 
 class DefaultGroup(Form):
     group = SelectField('Group', choices = get_groups())
+
+class EditSwimmer(Form):
+    group = SelectField('Group', choices = get_groups())

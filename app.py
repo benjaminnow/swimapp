@@ -1122,6 +1122,21 @@ def change_dashboard():
     else:
         return dict(navbar_group='none')
 
+@is_logged_in_admin
+@app.route('/edit/<string:idn>', methods=['GET', 'POST'])
+def edit(idn):
+    form = EditSwimmer(request.form)
+    if request.method == 'POST':
+        conn, cur = connection()
+        group = form.group.data
+        cur.execute('SELECT * FROM swimmers WHERE id=%s', [idn])
+        redirect_group = cur.fetchall()[0]['training_group']
+        cur.execute('UPDATE swimmers SET training_group=%s WHERE id=%s', (group, idn))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('group_dashboard', group=redirect_group))
+    return render_template('edit_swimmer.html', form=form)
+
 
 # comment out this when on local machine
 if __name__ == '__main__':
