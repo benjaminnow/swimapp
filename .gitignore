@@ -7,3 +7,6 @@ dump.sql
 create_test_users.py
 /venv
 templates/pictures
+export.py
+swimapp.sql
+/.idea

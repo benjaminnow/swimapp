@@ -3,7 +3,7 @@
 {% block body %}
   <h1>{{ swimmer.name }}</h1>
   <hr>
-  <div class='pull-right'><h2>Attendance: {{ percent }}%<h2></div>
+  <div class='pull-right'><h2>Attendance: {{ percent }}%</h2></div>
   <h2>Attendance History</h2>
   <div class="container">
     <table id="table"
@@ -19,6 +19,7 @@
         <tr>
             <th data-field="date" data-sortable="true">Date</th>
             <th data-field="amount" data-sortable="true">Credit</th>
+            <th data-field="edit" data-sortable="false">Edit Credit</th>
         </tr>
         </thead>
         <tbody>
@@ -26,6 +27,21 @@
             <tr id="tr-id" class="tr-class">
               <td id="td-id" class="td-class">{{ attendance.date }}</td>
               <td id="td-id" class="td-class">{{ attendance.amount }}</td>
+              <td id="td-id" class="td-class">
+                <div class="dropdown">
+                  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Edit
+                  <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                    {% from "includes/_formhelpers.html" import render_field %}
+                    <form method="POST" action="/change_attendance/{{ swimmer.id }}/{{ attendance.date }}">
+                      <div class="form-group">
+                        {{ render_field(form.amount, class_="form-control") }}
+                      </div>
+                      <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+                    </form>
+                  </ul>
+                </div>
+              </td>
             </tr>
           {% endfor %}
         </tbody>

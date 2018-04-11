@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Setting Attendance</h1>
+  <p>This will add attendance to the groups total. It will be the number dividing the swimmers attendance to get their attendance percentage.</p>
+  <img src="/static/gifs/add-attendance.gif">
+  <h1>Adding Attendance to each swimmer</h1>
+  <p>This will add attendance for each swimmer according to how much of the practice they show up to. The drop down is custom attendance amounts while the left most button is the most common. It will show green once they are at practice.</p>
+  <img src="/static/gifs/attendance1.gif">
+  <h1>Reseting Swimmers</h1>
+  <p>Pressing the reset button as shown will take away the green from all of the rows in the table. This will show that practice is over. It can be pressed at any time. The green is just a visual helper.
+  <img src="/static/gifs/reset-swimmers.gif">
+  <h1>Add swimmer</h1>
+  <p>This button will lead to a form which will allow you to create a swimmer by filling in a name and their group</p>
+  <img src="/static/gifs/add-swimmer.gif">
+  <h1>Delete swimmer</h1>
+  <p>This button will need to be activated by pressing the enable delete button. Then the swimmer can be deleted by pressing the delete button in their row. If you accidentally clicked the delete it can be undone if you click the undo button at the top.</p>
+  <img src="/static/gifs/delete-swimmer.gif">
+  <h1>Archive</h1>
+  <p>Archiving is saving the attendance data to your google drive account in Google Sheets. You will need to login to your Google Account and then select the corresponding export button. The file will then be created on your Google Drive account and you can view it / print it.</p>
+  <img src="/static/gifs/archive1.gif">
+{% endblock %}

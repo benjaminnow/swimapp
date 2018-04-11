@@ -59,3 +59,6 @@ class DefaultGroup(Form):
 
 class EditSwimmer(Form):
     group = SelectField('Group', choices = get_groups())
+
+class EditAttendanceForm(Form):
+    amount = DecimalField('Edit', [validators.DataRequired()], places=2)

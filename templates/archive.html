@@ -8,9 +8,11 @@
         if(clicked == false) {
           clicked = true;
           $(".resetbtn").attr('class', 'btn btn-danger resetbtn');
+          $(".deletebtn").prop('disabled', null);
         } else {
           clicked = false;
           $(".resetbtn").attr('class', 'btn btn-danger disabled resetbtn');
+          $(".deletebtn").attr('disabled', 'disabled');
         }
     });
   });
@@ -72,7 +74,7 @@
           <h3 class="panel-title">Reset Job Total</h3>
         </div>
         <div class="panel-body">
-          <a href="/archive/job_total" class="btn btn-danger disabled resetbtn">Reset</a>
+          <a href="/archive/job_total" class="btn btn-danger disabled resetbtn" disabled="disabled">Reset</a>
         </div>
       </div>
       <div class="panel panel-default">
@@ -80,7 +82,7 @@
           <h3 class="panel-title">Reset Individual Attendance Total</h3>
         </div>
         <div class="panel-body">
-          <a href="/archive/attendance_total" class="btn btn-danger disabled resetbtn">Reset</a>
+          <a href="/archive/attendance_total" class="btn btn-danger disabled resetbtn" disabled="disabled">Reset</a>
         </div>
       </div>
       <div class="panel panel-default">
@@ -88,7 +90,7 @@
           <h3 class="panel-title">Reset Group Attendance Totals</h3>
         </div>
         <div class="panel-body">
-          <a href="/archive/group_attendance" class="btn btn-danger disabled resetbtn">Reset</a>
+          <a href="/archive/group_attendance" class="btn btn-danger disabled resetbtn" disabled="disabled">Reset</a>
         </div>
       </div>
       <div class="panel panel-default">
@@ -96,7 +98,7 @@
           <h3 class="panel-title">Reset Weekly Attendance History For Graphs</h3>
         </div>
         <div class="panel-body">
-          <a href="/archive/weekly_attendance_history" class="btn btn-danger disabled resetbtn">Reset</a>
+          <a href="/archive/weekly_attendance_history" class="btn btn-danger disabled resetbtn" disabled="disabled">Reset</a>
         </div>
       </div>
     </div>
